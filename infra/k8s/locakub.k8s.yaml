@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: locakub
+  labels:
+    app: locakub
+    
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: locakub
+  template:
+    metadata:
+      labels:
+        app: locakub
+    spec:
+      containers:
+        - name: locakub
+          image: fshahy/locakub:0.0.1
+          ports:
+            - containerPort: 4000
+---
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: locakub-srv
+
+spec:
+  type: NodePort
+  selector:
+    app: locakub
+  ports:
+    - protocol: TCP
+      port: 4000
+      targetPort: 4000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: locakub-ingress-srv
+  annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: 'local.dev'
+      http:
+        paths:
+          - path: /home
+            pathType: Prefix
+            backend:
+              service:
+                name: locakub-srv
+                port: 
+                  number: 4000
